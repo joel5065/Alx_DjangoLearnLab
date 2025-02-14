@@ -1,32 +1,31 @@
 from bookshelf.models import Book 
 
-book1 = Book(title = "1984", author = "George Orwell", publication_year = "1949")
-book1.save()
+books = Book(title = "1984", author = "George Orwell", publication_year = "1949")
+books.save()
 
 # ---------------------------------------------------------------------------
+book = Book.objects.get(title = "1984")
 
-retrieved = Book.objects.get(title = "1984")
-
-print(retrieved.title)
+print(book.title)
 # output: 1984
 
-print(retrieved.author)
+print(book.author)
 # output: George Orwell
 
-print(retrieved.publication_year)
+print(book.publication_year)
 # output: 1949
 
 # ------------------------------------------------------------------------
 
-retrieved.title = "Nineteen Eighty-Four"
-retrieved.save()
+book.title = "Nineteen Eighty-Four"
+book.save()
 
-print(retrieved.title)
+print(book.title)
 # Output: Nineteen Eighty-Four
 
 # --------------------------------------------------------------------------
 
-retrieved.delete()
+book.delete()
 
 print(Book.objects.all())
 # output: <QuerySet []>

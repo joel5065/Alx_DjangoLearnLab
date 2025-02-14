@@ -1,7 +1,7 @@
 from bookshelf.models import Book
 
-retrieved.title = "Nineteen Eighty-Four"
-retrieved.save()
+book.title = "Nineteen Eighty-Four"
+book.save()
 
-print(retrieved.title)
+print(book.title)
 # Output: Nineteen Eighty-Four

@@ -1,12 +1,12 @@
 from bookshelf.models import Book
 
-retrieved = Book.objects.get(title = "1984")
+book = Book.objects.get(title = "1984")
 
-print(retrieved.title)
+print(book.title)
 # output: 1984
 
-print(retrieved.author)
+print(book.author)
 # output: George Orwell
 
-print(retrieved.publication_year)
+print(book.publication_year)
 # output: 1949
