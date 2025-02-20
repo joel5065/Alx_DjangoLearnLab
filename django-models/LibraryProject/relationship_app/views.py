@@ -7,11 +7,11 @@ from django.views.generic import DetailView
 def book_list(request):
     books = Book.objects.all()
     context = {'book_list': books}
-    return render(request, 'list_books.html', context)
+    return render(request, 'relationship/list_books.html', context)
 
 class LibraryDetailView(DetailView):
     model = Library
-    template_name = 'library_detail.html'
+    template_name = 'relationship/library_detail.html'
 
 
     def get_context_data(self, **kwargs):
