@@ -12,7 +12,7 @@ def list_books_in_library(library_name):
         books = library.books.all() # Use the related_name
         print(f"Books in {library_name}:")
         for book in books:
-            print(f"- {book.name}")
+            print(f"- {book.title}")
     
 def retrieve_librarian_for_library(library_name):
         library = Library.objects.get(name=library_name)
