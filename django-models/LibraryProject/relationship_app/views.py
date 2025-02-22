@@ -6,7 +6,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import Book
 from .models import Library
 from django.views.generic.detail import DetailView
-
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
 # Create your views here.
 
 def list_books(request):
@@ -24,24 +25,6 @@ class LibraryDetailView(DetailView):
         context['books'] = self.object.books.all()
         return context
     
-
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('list_books') # Redirect to your desired page after login
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
-
-def logout_view(request):
-    logout(request)
-    return render(request, 'logout.html')
 
 def register_view(request):
     if request.method == 'POST':
