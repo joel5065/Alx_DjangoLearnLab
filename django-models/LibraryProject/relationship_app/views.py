@@ -35,4 +35,4 @@ def register_view(request):
             return redirect('list_books') # Redirect to your desired page after registration
     else:
         form = UserCreationForm()
-    return render(request, 'register.html', {'form': form})
+    return render(request, 'relationship_app/register.html', {'form': form})
