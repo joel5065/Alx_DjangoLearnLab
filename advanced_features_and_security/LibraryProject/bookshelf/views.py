@@ -18,7 +18,7 @@ def add_book(request):
             return redirect('books_list')
     else:
         form = ExampleForm()
-    return render(request, 'bookshelf/exampleform.html', {'form': form})
+    return render(request, 'bookshelf/form_example.html', {'form': form})
 
 @permission_required('bookshelf.can_delete', raise_exception=True)
 def delete_book(request, pk):
