@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bookshelf',
-    'relationship_app',
 ]
 
 MIDDLEWARE = [
@@ -60,7 +59,7 @@ ROOT_URLCONF = 'LibraryProject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS':  [BASE_DIR / 'relationship_app/templates/relationship_app'],
+        #'DIRS':  [BASE_DIR / 'relationship_app/templates/relationship_app'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
