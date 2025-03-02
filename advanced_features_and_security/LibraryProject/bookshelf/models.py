@@ -1,5 +1,7 @@
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+
 
 class Book(models.Model):
     title = models.CharField(max_length=200)
@@ -8,10 +10,10 @@ class Book(models.Model):
 
     class Meta:
         permissions = [
-            ("can_view", "Can view book"),
-            ("can_create", "Can create book"),
-            ("can_edit", "Can edit book"),
-            ("can_delete", "Can delete book"),
+            ("can_view", "Can view books"),
+            ("can_create", "Can create books"),
+            ("can_edit", "Can edit books"),
+            ("can_delete", "Can delete books"),
         ]
 class CustomUserManager(BaseUserManager):
 
@@ -32,14 +34,15 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, username, email, password=None, date_of_birth=None, profile_photo=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True) 
+        extra_fields.setdefault('is_superuser', True) # corrected 'is_super' to 'is_superuser'
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True: 
+        if extra_fields.get('is_superuser') is not True: # corrected 'is_super' to 'is_superuser'
             raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(username, email, password, date_of_birth, profile_photo, **extra_fields)
-    
+
+
 class CustomUser(AbstractUser):
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
