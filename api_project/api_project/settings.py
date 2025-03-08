@@ -27,11 +27,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+DEFAULT_AUTHENTICATION_CLASSES = rest_framework.authentication.TokenAuthentication
+    
 
 # Application definition
 
 INSTALLED_APPS = [
     'rest_framework',
+    'rest_framework.authtoken',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
