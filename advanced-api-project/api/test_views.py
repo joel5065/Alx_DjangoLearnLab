@@ -7,7 +7,7 @@ from django.utils import timezone
 class BookViewsTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-        self.client.login(User=self.user)
+        self.client.login(user=self.user)
         self.author1 = Author.objects.create(name='Owell')
         self.author2 = Author.objects.create(name='Joel')
         self.book1 = Book.objects.create(title='Test Book 1', author=self.author1, publication_year=timezone.now().date())
@@ -50,7 +50,7 @@ class BookViewsTestCase(APITestCase):
         self.assertEqual(Author.objects.count(), 2)
 
     def test_book_update_authenticated(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.login(user=self.user)
         data = {
             'title': 'Updated Book',
             'author': {'name': 'Updated Author'},
@@ -73,7 +73,7 @@ class BookViewsTestCase(APITestCase):
         self.assertEqual(Author.objects.get(name='Owell'))
 
     def test_book_delete_authenticated(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.login(user=self.user)
         response = self.client.delete(f'/api/books/delete/{self.book1.pk}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Book.objects.count(), 1)
