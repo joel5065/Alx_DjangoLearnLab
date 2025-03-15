@@ -7,6 +7,7 @@ from django.utils import timezone
 class BookViewsTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(User=self.user)
         self.author1 = Author.objects.create(name='Owell')
         self.author2 = Author.objects.create(name='Joel')
         self.book1 = Book.objects.create(title='Test Book 1', author=self.author1, publication_year=timezone.now().date())
