@@ -1,16 +1,27 @@
 from django.shortcuts import render
-from rest_framework import generics, filters
+from rest_framework import generics
+from django_filters import rest_framework as filters
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .models import Book
 from .serializers import BookSerializer
 
 
+class BookFilter(filters.FilterSet):
+    title = filters.CharFilter(lookup_expr='icontains')
+    author = filters.CharFilter(lookup_expr='icontains')
+    publication_date__gte = filters.DateFilter(field_name='publication_year', lookup_expr='icontains')
+    
+
+    class Meta:
+        model = Book
+        fields = ['title', 'author', 'publication_year']
+
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['author', 'title']
+    filter_backends = [filters.DjangoFilterBackend] 
+    filterset_class = BookFilter
 
 class BookDetailView(generics.RetrieveAPIView):
     queryset = Book.objects.all()
@@ -24,9 +35,8 @@ class BookCreateView(generics.CreateAPIView):
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
 
-    #Customization example: Overriding create method for additional logic or validation
+   
     def perform_create(self, serializer):
-        # Additional logic before saving, e.g., logging, validation
         serializer.save()
 
 class BookUpdateView(generics.UpdateAPIView):
@@ -34,9 +44,7 @@ class BookUpdateView(generics.UpdateAPIView):
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
 
-    #Customization example: Overriding update method
     def perform_update(self, serializer):
-        #Additional logic before saving, e.g., logging, validation
         serializer.save()
 
 class BookDeleteView(generics.DestroyAPIView):
