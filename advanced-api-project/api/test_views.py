@@ -1,19 +1,16 @@
-
-from django.test import TestCase
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase
 from rest_framework import status
 from .models import Book, Author
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-class BookViewsTestCase(TestCase):
+class BookViewsTestCase(APITestCase):
     def setUp(self):
-        self.client = APIClient()
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-        self.author1 = Author.objects.create(name= 'Owen')
+        self.author1 = Author.objects.create(name='Owell')
         self.author2 = Author.objects.create(name='Joel')
-        self.book1 = Book.objects.create(title='Test Book 1', publication_year=timezone.now().date())
-        self.book2 = Book.objects.create(title='Test Book 2', publication_year=timezone.now().date())
+        self.book1 = Book.objects.create(title='Test Book 1', author=self.author1, publication_year=timezone.now().date())
+        self.book2 = Book.objects.create(title='Test Book 2', author=self.author2, publication_year=timezone.now().date())
 
     def test_book_list(self):
         response = self.client.get('/api/books/')
@@ -24,26 +21,55 @@ class BookViewsTestCase(TestCase):
         response = self.client.get(f'/api/books/{self.book1.pk}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], 'Test Book 1')
+        self.assertEqual(response.data['author']['name'], 'Owell')
 
     def test_book_create_authenticated(self):
         self.client.force_authenticate(user=self.user)
-        data = {'title': 'New Book', 'author': 'New Author', 'publication_year': '2023-01-01'}
-        response = self.client.post('/api/books/create/', data)
+        data = {
+            'title': 'New Book',
+            'author': {'name': 'New Author'},
+            'publication_year': '2023-01-01',
+            
+        }
+        response = self.client.post('/api/books/create/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Book.objects.count(), 3)
+        self.assertEqual(Author.objects.count(), 3)
 
     def test_book_create_unauthenticated(self):
-        data = {'title': 'New Book', 'author': 'New Author', 'publication_year': '2023-01-01'}
-        response = self.client.post('/api/books/create/', data)
+        data = {
+            'title': 'New Book',
+            'author': {'name': 'New Author'},
+            'publication_year': '2023-01-01',
+            
+        }
+        response = self.client.post('/api/books/create/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Book.objects.count(), 2)
+        self.assertEqual(Author.objects.count(), 2)
 
     def test_book_update_authenticated(self):
         self.client.force_authenticate(user=self.user)
-        data = {'title': 'Updated Book', 'author': 'Updated Author', 'publication_year': '2023-01-02'}
-        response = self.client.put(f'/api/books/update/{self.book1.pk}', data)
+        data = {
+            'title': 'Updated Book',
+            'author': {'name': 'Updated Author'},
+            'publication_year': '2023-01-02',
+        }
+        response = self.client.put(f'/api/books/update/{self.book1.pk}', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Book.objects.get(pk=self.book1.pk).title, 'Updated Book')
+        self.assertEqual(Author.objects.get(name='Updated Author'))
+
+    def test_book_update_unauthenticated(self):
+        data = {
+            'title': 'Updated Book',
+            'author': {'name': 'Updated Author'},
+            'publication_year': '2023-01-02',
+        }
+        response = self.client.put(f'/api/books/update/{self.book1.pk}', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Book.objects.get(pk=self.book1.pk).title, 'Test Book 1')
+        self.assertEqual(Author.objects.get(name='Owell'))
 
     def test_book_delete_authenticated(self):
         self.client.force_authenticate(user=self.user)
@@ -52,7 +78,7 @@ class BookViewsTestCase(TestCase):
         self.assertEqual(Book.objects.count(), 1)
 
     def test_book_delete_unauthenticated(self):
-        response = self.client.delete(f'/api/books/delete/{self.book1.pk}')
+        response = self.client.delete(f'/api/books/{self.book1.pk}/delete/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Book.objects.count(), 2)
 
@@ -63,7 +89,7 @@ class BookViewsTestCase(TestCase):
         self.assertEqual(response.data[0]['title'], 'Test Book 1')
 
     def test_book_filter_author(self):
-        response = self.client.get('/api/books/?author=Author%202')
+        response = self.client.get('/api/books/?author=Joel')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['author'], 'Author 2')
+        self.assertEqual(response.data[0]['author']['name'], 'Joel')
