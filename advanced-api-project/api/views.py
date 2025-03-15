@@ -1,15 +1,15 @@
 from django.shortcuts import render
 from rest_framework import generics, filters
-from django_filters import rest_framework as filters
+from django_filters import rest_framework as filter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .models import Book
 from .serializers import BookSerializer
 
 
-class BookFilter(filters.FilterSet):
-    title = filters.CharFilter(lookup_expr='icontains')
-    author = filters.CharFilter(lookup_expr='icontains')
-    publication_date__gte = filters.DateFilter(field_name='publication_year', lookup_expr='icontains')
+class BookFilter(filter.FilterSet):
+    title = filter.CharFilter(lookup_expr='icontains')
+    author = filter.CharFilter(lookup_expr='icontains')
+    publication_date__gte = filter.DateFilter(field_name='publication_year', lookup_expr='icontains')
     
 
     class Meta:
@@ -20,7 +20,7 @@ class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [filters.DjangoFilterBackend] 
+    filter_backends = [filter.DjangoFilterBackend] 
     filterset_class = BookFilter
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'author', 'publication_year']
@@ -39,6 +39,7 @@ class BookCreateView(generics.CreateAPIView):
 
    
     def perform_create(self, serializer):
+        # On peut implementer des modifs sur la vue ici
         serializer.save()
 
 class BookUpdateView(generics.UpdateAPIView):
@@ -47,6 +48,7 @@ class BookUpdateView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
+        # On peut implementer des modifs sur la vue ici
         serializer.save()
 
 class BookDeleteView(generics.DestroyAPIView):
