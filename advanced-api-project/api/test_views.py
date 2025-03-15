@@ -2,7 +2,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Book
+from .models import Book, Author
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -10,8 +10,10 @@ class BookViewsTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-        self.book1 = Book.objects.create(title='Test Book 1', author='Author 1', publication_year=timezone.now().date())
-        self.book2 = Book.objects.create(title='Test Book 2', author='Author 2', publication_year=timezone.now().date())
+        self.author1 = Author.objects.create(name= 'Owen')
+        self.author2 = Author.objects.create(name='Joel')
+        self.book1 = Book.objects.create(title='Test Book 1', publication_year=timezone.now().date())
+        self.book2 = Book.objects.create(title='Test Book 2', publication_year=timezone.now().date())
 
     def test_book_list(self):
         response = self.client.get('/api/books/')

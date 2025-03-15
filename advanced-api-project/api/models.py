@@ -7,5 +7,5 @@ class Author(models.Model):
 
 class Book(models.Model):
     title = models.CharField(max_length=50)
-    publication_year = models.IntegerField()
+    publication_year = models.DateField()
     author = models.ForeignKey('api.Author', on_delete=models.CASCADE, null=False)
