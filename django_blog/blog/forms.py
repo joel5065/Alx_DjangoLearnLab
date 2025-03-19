@@ -13,4 +13,4 @@ class CustomUserCreationForm(UserCreationForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'published_date', 'author', 'updated_at']
+        fields = ['title', 'content']
