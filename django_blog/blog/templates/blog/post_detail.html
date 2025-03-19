@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ post.title }}</title>
+</head>
+<body>
+    <h1>{{ post.title }}</h1>
+    <p>Author: {{ post.author.username }}</p>
+    <p>{{ post.content }}</p>
+    {% if user == post.author %}
+        <a href="{% url 'post-update' post.pk %}">Edit</a>
+        <a href="{% url 'post-delete' post.pk %}">Delete</a>
+    {% endif %}
+    <a href="{% url 'post-list' %}">Back to Posts</a>
+</body>
+</html>
