@@ -36,24 +36,23 @@ class PostListView(ListView):
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
     ordering = ['-create_at']
-    
+
+
+class PostByTagListView(ListView):
+    model = Post
+    template_name = 'blog/post_list.html' 
+    context_object_name = 'posts'
+    ordering = ['-create_at']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
         tag_slug = self.kwargs.get('tag_slug')
-        if tag_slug:
-            tag = get_object_or_404(Tag, slug=tag_slug)
-            queryset = queryset.filter(tags__in=[tag])
-        return queryset
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        return Post.objects.filter(tags__in=[tag])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tag_slug = self.kwargs.get('tag_slug')
-        if tag_slug:
-            context['tag'] = get_object_or_404(Tag, slug=tag_slug)
-        else:
-            context['tag'] = None
-
+        context['tag'] = get_object_or_404(Tag, slug=tag_slug)
         return context
 
 class PostDetailView(DetailView):
