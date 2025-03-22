@@ -4,9 +4,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
+from django.db.models import Q
 from django.urls import reverse_lazy
+
 
 def register(request):
     if request.method == 'POST':
@@ -33,7 +35,26 @@ class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
-    ordering = ['-created_at']
+    ordering = ['-create_at']
+    
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tag_slug = self.kwargs.get('tag_slug')
+        if tag_slug:
+            tag = get_object_or_404(Tag, slug=tag_slug)
+            queryset = queryset.filter(tags__in=[tag])
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_slug')
+        if tag_slug:
+            context['tag'] = get_object_or_404(Tag, slug=tag_slug)
+        else:
+            context['tag'] = None
+
+        return context
 
 class PostDetailView(DetailView):
     model = Post
@@ -66,6 +87,17 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+    
+def post_search(request):
+    query = request.GET.get('q')
+    results = []
+
+    if query:
+        results = Post.objects.filter(
+            Q(title__icontains=query) | Q(content__icontains=query) | Q(tags__name__icontains=query)
+        ).distinct()
+
+    return render(request, 'blog/search_results.html', {'results': results, 'query': query})
     
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
