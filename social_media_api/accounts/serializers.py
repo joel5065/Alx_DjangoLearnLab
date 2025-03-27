@@ -8,7 +8,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['id', 'username', 'email', 'password', 'bio', 'profile_picture', 'token']
+        fields = ['id', 'username', 'email', 'bio', 'profile_picture', 
+                 'following_count', 'followers_count', 'is_following']
+        read_only_fields = ['id', 'following_count', 'followers_count', 'is_following']
         extra_kwargs = {'password': {'write_only': True}}
 
         def create(self, validated_data):
@@ -18,4 +20,19 @@ class UserSerializer(serializers.ModelSerializer):
         def get_token(self, obj):
             token = Token.objects.get(user=obj)
             return token.key
-        
+        def get_following_count(self, obj):
+            return obj.get_following_count()
+
+    def get_followers_count(self, obj):
+        return obj.get_followers_count()
+
+    def get_is_following(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user.is_following(obj)
+        return False
+
+class UserProfileSerializer(UserSerializer):
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ['date_joined', 'last_login']

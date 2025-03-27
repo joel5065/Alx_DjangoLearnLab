@@ -58,7 +58,7 @@ class PostByTagListView(ListView):
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
-    context_object_name = 'post'
+    context_object_name = 'posts'
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -81,7 +81,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
-    success_url = reverse_lazy('post-list')
+    success_url = reverse_lazy('posts-list')
 
     def test_func(self):
         post = self.get_object()
