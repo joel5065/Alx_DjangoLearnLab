@@ -12,7 +12,7 @@ from .serializers import PostSerializer, CommentSerializer
 # Create your views here.
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-def register(request):
+def register_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
@@ -44,7 +44,7 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
         return obj.author == request.user
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.object.all()
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -59,6 +59,7 @@ class CommentViewset(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    serializer_class = CommentSerializer
     
     def get_queryset(self):
         post_id = self.kwargs.get('post_pk')
