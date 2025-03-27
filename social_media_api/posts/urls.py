@@ -1,0 +1,15 @@
+from django.urls import path, include
+from accounts.views import  PostViewSet, CommentViewset
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'posts', PostViewSet, basename='post')
+
+p_router = DefaultRouter()
+p_router.register(r'comments', CommentViewset, basename='post-comment')
+
+urlpatterns = [
+    path('api/', include(router.urls)),
+    path('posts/<int:post_pk>/', include(p_router.urls)),
+    
+]
