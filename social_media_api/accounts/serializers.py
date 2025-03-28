@@ -23,15 +23,6 @@ class UserSerializer(serializers.ModelSerializer):
         def get_following_count(self, obj):
             return obj.get_following_count()
 
-    def get_followers_count(self, obj):
-        return obj.get_followers_count()
-
-    def get_is_following(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return request.user.is_following(obj)
-        return False
-
 class UserProfileSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):

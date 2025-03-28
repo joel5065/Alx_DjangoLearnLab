@@ -2,11 +2,12 @@ from django.contrib.auth import authenticate
 from .serializers import UserSerializer, UserProfileSerializer
 from .models import CustomUser
 from rest_framework import permissions
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import status, generics,filters 
 from rest_framework.authtoken.models import Token
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 @api_view(['POST'])
@@ -29,58 +30,69 @@ def login(request):
     user = authenticate(username=username, password=password)
 
     if user:
-        token, _=Token.objects.get_or_create(user=user)
+        token, _= Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'user': UserSerializer(user).data
         })
     return Response("Error: Invalid credentials!")
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset =CustomUser.objects.all()
+
+class UserListView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend] 
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'email', 'password']
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return UserProfileSerializer
-        return UserSerializer
+class UserDetailView(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['id', 'username', 'email', 'bio', 'profile_picture', 
+                 'following_count', 'followers_count', 'is_following']
 
-    def get_permissions(self):
-        if self.action in ['follow', 'unfollow', 'following', 'followers']:
-            return [permissions.IsAuthenticated()]
-        return super().get_permissions()
+class UserCreateView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=True, methods=['post'])
-    def follow(self, request, pk=None):
-        user_to_follow = self.get_object()
-        if request.user.follow(user_to_follow):
-            return Response({'status': 'following'})
-        return Response(
-            {'error': 'Already following or cannot follow yourself'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+   
+    def perform_create(self, serializer):
+        # On peut implementer des modifs sur la vue ici
+        serializer.save()
 
-    @action(detail=True, methods=['post'])
-    def unfollow(self, request, pk=None):
-        user_to_unfollow = self.get_object()
-        if request.user.unfollow(user_to_unfollow):
-            return Response({'status': 'unfollowed'})
-        return Response(
-            {'error': 'Not following this user'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+class UserUpdateView(generics.UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=True)
-    def following(self, request, pk=None):
-        user = self.get_object()
-        following = user.following.all()
-        serializer = self.get_serializer(following, many=True)
-        return Response(serializer.data)
+    def perform_update(self, serializer):
+        # On peut implementer des modifs sur la vue ici
+        serializer.save()
 
-    @action(detail=True)
-    def followers(self, request, pk=None):
-        user = self.get_object()
-        followers = user.followers.all()
-        serializer = self.get_serializer(followers, many=True)
-        return Response(serializer.data)
+class UserDeleteView(generics.DestroyAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def follow_user(request, user_id):
+    user_to_follow = get_object_or_404(CustomUser, pk=user_id)
+    if request.user == user_to_follow:
+        return Response({"error": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+    request.user.following.add(user_to_follow)
+    return Response({"message": f"You are now following {user_to_follow.username}."}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def unfollow_user(request, user_id):
+    user_to_unfollow = get_object_or_404(CustomUser, pk=user_id)
+    if request.user == user_to_unfollow:
+        return Response({"error": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+    request.user.following.remove(user_to_unfollow)
+    return Response({"message": f"You have unfollowed {user_to_unfollow.username}."}, status=status.HTTP_200_OK)
