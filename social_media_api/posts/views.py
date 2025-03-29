@@ -1,4 +1,4 @@
-from rest_framework import permissions, viewsets, filters, generics, status
+from rest_framework import permissions, viewsets, filters, status,generics
 from .models import Post, Comment, Like
 from notifications.models import Notification
 from .serializers import PostSerializer, CommentSerializer
@@ -57,7 +57,7 @@ class FeedView(generics.ListAPIView):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def like_post(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+    post = generics.get_object_or_404(Post, pk=pk)
     user = request.user
 
     like, created = Like.objects.get_or_create(user=user, post=post)
