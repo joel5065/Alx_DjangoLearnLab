@@ -1,5 +1,6 @@
 from rest_framework import permissions, viewsets, filters, generics, status
 from .models import Post, Comment, Like
+from notifications.models import Notification
 from .serializers import PostSerializer, CommentSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -59,12 +60,20 @@ def like_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
     user = request.user
 
-    if Like.objects.filter(user=user, post=post).exists():
-        return Response({"message": "You have already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
+    like, created = Like.objects.get_or_create(user=user, post=post)
 
-    Like.objects.create(user=user, post=post)
-
-    return Response({"message": "Post liked successfully."}, status=status.HTTP_201_CREATED)
+    if created:
+        # Create notification for the post owner (if the liker is not the owner)
+        if user != post.user:
+            Notification.objects.create(
+                recipient=post.user,
+                actor=user,
+                verb='liked your post',
+                target=post
+            )
+        return Response({"message": "Post liked successfully."}, status=status.HTTP_201_CREATED)
+    else:
+        return Response({"message": "You have already liked this post."}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
@@ -78,4 +87,3 @@ def unlike_post(request, pk):
         return Response({"message": "Post unliked successfully."}, status=status.HTTP_204_NO_CONTENT)
     except Like.DoesNotExist:
         return Response({"message": "You have not liked this post yet."}, status=status.HTTP_400_BAD_REQUEST)
-
