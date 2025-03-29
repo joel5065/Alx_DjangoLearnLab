@@ -1,9 +1,10 @@
-from rest_framework import permissions, viewsets, filters, generics
-from .models import Post, Comment
+from rest_framework import permissions, viewsets, filters, generics, status
+from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from rest_framework.decorators import api_view, permission_classes
 
 User = get_user_model()
 
@@ -51,3 +52,30 @@ class FeedView(generics.ListAPIView):
         following_users = author.following.all()
         queryset = Post.objects.filter(author__in=following_users).order_by('-created_at')
         return queryset
+    
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def like_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    user = request.user
+
+    if Like.objects.filter(user=user, post=post).exists():
+        return Response({"message": "You have already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
+
+    Like.objects.create(user=user, post=post)
+
+    return Response({"message": "Post liked successfully."}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def unlike_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    user = request.user
+
+    try:
+        like = Like.objects.get(user=user, post=post)
+        like.delete()
+        return Response({"message": "Post unliked successfully."}, status=status.HTTP_204_NO_CONTENT)
+    except Like.DoesNotExist:
+        return Response({"message": "You have not liked this post yet."}, status=status.HTTP_400_BAD_REQUEST)
+
